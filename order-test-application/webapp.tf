@@ -5,23 +5,24 @@ resource "azurerm_application_insights" "main" {
   application_type    = "web"
 }
 
-resource "azurerm_app_service_plan" "main" {
+resource "azurerm_service_plan" "main" {
   name                = "order-app-serviceplan"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  sku {
-    tier = "Standard"
-    size = "B1"
-  }
+  os_type             = "Linux"
+  sku_name            = "B1"
 }
 
-resource "azurerm_app_service" "main" {
+resource "azurerm_linux_web_app" "main" {
   name                = var.app_service_name
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  app_service_plan_id = azurerm_app_service_plan.main.id
+  service_plan_id = azurerm_service_plan.main.id
+
+  site_config {}
+
   app_settings = {
     "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.main.instrumentation_key
-    "COSMOSDB_CONNECTION_STRING"      = azurerm_cosmosdb_account.main.connection_strings[0]
+    "COSMOSDB_CONNECTION_STRING"      = azurerm_cosmosdb_account.main.primary_mongodb_connection_string
   }
 }
